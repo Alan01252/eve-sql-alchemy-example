@@ -1,0 +1,15 @@
+version: '2'
+services:
+    eve:
+        build: ./eve
+        ports:
+            - "5000:5000"
+        network_mode: bridge
+        environment:
+            - PYTHONUNBUFFERED=0 
+        volumes:
+            - ./eve/code:/code
+        entrypoint:
+            - python
+            - -u
+            - run.py
