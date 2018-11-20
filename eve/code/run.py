@@ -1,17 +1,25 @@
 from eve import Eve
 from eve.utils import config
 from settings import SETTINGS
-from models import Base, Event, EventMeta, Tag, TagBridge, Conversation, OpLog
+from models import Event, EventMeta, Contact, Number, ContactNumberBridge,Comment,Tag,CommentTagBridge,OpLog
+from models import Base
 
 from eve_sqlalchemy import SQL
 from eve_sqlalchemy.validation import ValidatorSQL
 from eve_sqlalchemy.config import ResourceConfig
+from event_blueprint import blueprint
+import json
 
 from eve.methods.common import (
     oplog_push
 )
 
+from eve.methods.common import (
+    pre_event,
+)
+
 app = Eve(auth=None, settings=SETTINGS, validator=ValidatorSQL, data=SQL)
+app.register_blueprint(blueprint)
 
 # Eve hardcodes the oplog schema, overwriting the settings needed for sqlalchemy
 # Make them back to what they need to be for SQLAlchemy here
@@ -25,63 +33,70 @@ Base.metadata.bind = db.engine
 db.Model = Base
 db.create_all();
 
-# Insert some example dimensions into the db
+# # Insert some example dimensions into the db
 if not db.session.query(EventMeta).count():
-    db.session.add_all([
-        EventMeta(url="http://path_to_s3"),
-        Tag(text="#a_tag"),
-        Tag(text="#a_tag1"),
-        Tag(text="#a_tag2"),
-        Tag(text="#a_tag3"),
-        Tag(text="#a_tag4"),
-    ])
-    db.session.commit()
+     db.session.add_all([
+         EventMeta(url="http://path_to_s3"),
+         Tag(text="#a_tag"),
+         Tag(text="#a_tag1"),
+         Tag(text="#a_tag2"),
+         Tag(text="#a_tag3"),
+         Tag(text="#a_tag4"),
+     ])
+     db.session.commit()
 
 
-# Insert some example facts into the db
+# # Insert some example facts into the db
 if not db.session.query(Event).count():
-    event_meta = db.session.query(EventMeta).one()
-    tag = db.session.query(Tag).all()
+     event_meta = db.session.query(EventMeta).one()
+     tags = db.session.query(Tag).all()
 
-    db.session.add_all([
-        Event(event_meta_key=event_meta.id),
-        TagBridge(tag_bridge_key=1, tag_key=tag[0].id),
-        TagBridge(tag_bridge_key=1, tag_key=tag[1].id),
-        TagBridge(tag_bridge_key=1, tag_key=tag[2].id),
-    ])
+     db.session.add_all([
+         Event(event_meta_key=event_meta.id),
+     ])
 
-    db.session.add_all([
-	Conversation(tag_bridge_key=1, event_meta_key=1)
-    ])
+     db.session.add_all([
+ 	    Comment(tags=tags, event_meta_key=1)
+     ])
 
-    db.session.commit()
+     db.session.commit()
 
-
-sql = (
-"select url,group_concat(TagDimension.text)"
-" from"
-" EventMetaDimension"
-" join ConversationFact on ( EventMetaDimension.id = ConversationFact.event_meta_key )"
-" join TagBridge on (TagBridge.tag_bridge_key = ConversationFact.tag_bridge_key)"
-" join TagDimension on ( TagBridge.tag_key = TagDimension.id )"
-)
-
-result = db.session.execute(sql)
 
 # HOOKS
 def pre_get_callback(resource, request, lookup):
-    oplog_push(resource, None, "GET")
+     app.logger.info("pre get fired")
+     if resource:
+        oplog_push(resource, None, "GET")
+
+
+def post_get_callback(resource, request, lookup):
+     # work out what we get here, if we're getting a list of comments / events then we should log
+     # each individual event id here too
+     events = [] 
+     if resource:
+        oplog_push(resource, events, "GET")
+
+def pre_post_callback(resource, request):
+     print(resource)
+     print(request)
+
+def pre_put_callback(resource, request, lookup):
+     print(resource)
+     print(request)
+     print(lookup)
+
+def pre_oplog(resource, entries):
+    for entry in entries:
+        if 'c' in entry:
+            entry['c'] = json.dumps(entry['c'])
 
 app.on_pre_GET += pre_get_callback
-
-@app.route('/events/tags')
-def event_tags():
-    app.logger.info(result)
-    app.logger.info(sql)
-    for row in result:
-    	app.logger.info(row[0])
-    return "here"
+app.on_post_GET += post_get_callback
+app.on_pre_POST += pre_post_callback
+app.on_pre_PUT += pre_put_callback
+app.on_oplog_push += pre_oplog
 
 
-app.run(host='0.0.0.0', use_reloader=False)
+
+app.run(host='0.0.0.0', use_reloader=True)
 
