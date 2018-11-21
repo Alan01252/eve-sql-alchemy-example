@@ -1,6 +1,6 @@
 from flask import Blueprint, current_app as app
 
-blueprint = Blueprint('prefix_uri', __name__)
+event_blueprint = Blueprint('prefix_uri', __name__)
 
 from eve.methods.common import (
     pre_event,
@@ -16,11 +16,10 @@ sql = (
  )
 
 from flask import request
-@blueprint.route('/events/tags', methods=['GET'])
-def get_tags(self):
-    getattr(app, "on_pre_GET")(pre_event(self))
+@event_blueprint.route('/events/tags', methods=['GET'])
+def get_tags():
+    getattr(app, "on_pre_GET")()
     db =  app.data.driver
-    print("jere")
     result = db.session.execute(sql)
     app.logger.info(result)
     app.logger.info(sql)

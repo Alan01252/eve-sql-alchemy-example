@@ -24,7 +24,17 @@ class EventMeta(BaseModel):
     url = Column(String(200))
 
     table_type = 'current'
- 
+
+class ContactTeam(BaseModel):
+    __tablename__ = 'contact_team'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    table_type = 'current'
+    contacts = relationship(
+        'Contact',
+        backref="contact_team"
+    )
+
 class Contact(BaseModel):
     __tablename__ = 'contact'
     id = Column(Integer, primary_key=True)
@@ -33,6 +43,7 @@ class Contact(BaseModel):
         'Number',
         secondary='contact_number_bridge'
     )
+    team_id = Column(Integer, ForeignKey('contact_team.id'))
 
     is_current = 'F'
     table_type = 'historic'
@@ -44,7 +55,6 @@ class Contact(BaseModel):
             'numbers'
         ]
  
- 
 class Number(BaseModel):
     __tablename__ = 'number'
     id = Column(Integer, primary_key=True)
@@ -54,14 +64,12 @@ class Number(BaseModel):
         secondary='contact_number_bridge'
     )
  
- 
 class ContactNumberBridge(BaseModel):
     __tablename__ = 'contact_number_bridge'
     id = Column(Integer, primary_key=True)
     contact_id = Column(Integer, ForeignKey('contact.id'))
     number_id = Column(Integer, ForeignKey('number.id'))
     extra_data = Column(String(256))
-    contact = relationship(Contact, backref=backref("contact_assoc"))
     number = relationship(Number, backref=backref("number_assoc"))
 
 class Comment(BaseModel):

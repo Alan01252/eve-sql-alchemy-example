@@ -1,4 +1,8 @@
-from models import Event, EventMeta, Contact, Number, ContactNumberBridge,Comment,Tag,CommentTagBridge,OpLog
+from models import (
+    Event, EventMeta, Contact, ContactTeam,
+    Number, ContactNumberBridge,
+    Comment,Tag,CommentTagBridge,OpLog
+)
 from eve_sqlalchemy.config import DomainConfig, ResourceConfig
 
 SETTINGS = {
@@ -15,6 +19,7 @@ SETTINGS = {
         'event': ResourceConfig(Event),
         'event_meta': ResourceConfig(EventMeta),
         'contact': ResourceConfig(Contact),
+        'contact_team': ResourceConfig(ContactTeam),
         'number': ResourceConfig(Number),
         'contact_number_bridge': ResourceConfig(ContactNumberBridge),
         'comment': ResourceConfig(Comment),
@@ -23,5 +28,10 @@ SETTINGS = {
         'oplog': ResourceConfig(OpLog)
     }).render()
 }
+
+SETTINGS['DOMAIN']['oplog'].update({
+    'resource_methods': ['GET'],
+    'allowed_roles': ['superuser']
+})
 
 

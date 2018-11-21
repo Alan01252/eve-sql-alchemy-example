@@ -1,13 +1,15 @@
 from eve import Eve
 from eve.utils import config
 from settings import SETTINGS
-from models import Event, EventMeta, Contact, Number, ContactNumberBridge,Comment,Tag,CommentTagBridge,OpLog
+from models import Event, EventMeta, Contact, Number, ContactNumberBridge, Comment, Tag, CommentTagBridge, OpLog
 from models import Base
 
 from eve_sqlalchemy import SQL
 from eve_sqlalchemy.validation import ValidatorSQL
 from eve_sqlalchemy.config import ResourceConfig
-from event_blueprint import blueprint
+from event_blueprint import event_blueprint
+from eve.auth import TokenAuth
+
 import json
 
 from eve.methods.common import (
@@ -18,8 +20,14 @@ from eve.methods.common import (
     pre_event,
 )
 
-app = Eve(auth=None, settings=SETTINGS, validator=ValidatorSQL, data=SQL)
-app.register_blueprint(blueprint)
+class TokenAuth(TokenAuth):
+    def check_auth(self, token, allowed_roles, resource, method):
+        print(token)
+        print(resource)
+        print(allowed_roles)
+
+app = Eve(auth=TokenAuth, settings=SETTINGS, validator=ValidatorSQL, data=SQL)
+app.register_blueprint(event_blueprint)
 
 # Eve hardcodes the oplog schema, overwriting the settings needed for sqlalchemy
 # Make them back to what they need to be for SQLAlchemy here
@@ -62,6 +70,9 @@ if not db.session.query(Event).count():
      db.session.commit()
 
 
+
+
+
 # HOOKS
 def pre_get_callback(resource, request, lookup):
      app.logger.info("pre get fired")
@@ -91,12 +102,11 @@ def pre_oplog(resource, entries):
             entry['c'] = json.dumps(entry['c'])
 
 app.on_pre_GET += pre_get_callback
+app.on_pre_GET += pre_get_callback
 app.on_post_GET += post_get_callback
 app.on_pre_POST += pre_post_callback
 app.on_pre_PUT += pre_put_callback
 app.on_oplog_push += pre_oplog
-
-
 
 app.run(host='0.0.0.0', use_reloader=True)
 
