@@ -10,7 +10,7 @@ sql = (
  "select url,group_concat(tag.text)"
  " from"
  " event_meta"
- " join comment on ( event_meta.id = comment.event_meta_key )"
+ " join comment on ( event_meta.id = comment.event_meta )"
  " join comment_tag_bridge on (comment_tag_bridge.comment_id = comment.id)"
  " join tag on ( comment_tag_bridge.tag_id = tag.id )"
  )

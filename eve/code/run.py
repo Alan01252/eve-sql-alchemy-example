@@ -25,6 +25,8 @@ class TokenAuth(TokenAuth):
         print(token)
         print(resource)
         print(allowed_roles)
+        print("return true")
+        return True
 
 app = Eve(auth=TokenAuth, settings=SETTINGS, validator=ValidatorSQL, data=SQL)
 app.register_blueprint(event_blueprint)
@@ -60,7 +62,7 @@ if not db.session.query(Event).count():
      tags = db.session.query(Tag).all()
 
      db.session.add_all([
-         Event(event_meta_key=event_meta.id),
+         Event(event_meta_id=event_meta.id),
      ])
 
      db.session.add_all([

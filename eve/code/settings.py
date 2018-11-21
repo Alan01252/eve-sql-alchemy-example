@@ -34,4 +34,13 @@ SETTINGS['DOMAIN']['oplog'].update({
     'allowed_roles': ['superuser']
 })
 
+# Set to allow number key to be returned with events
+SETTINGS['DOMAIN']['contact']['schema']['numbers']['schema']['data_relation']['embeddable'] = True
+# Set to allow number key to be returned with events
+#SETTINGS['DOMAIN']['event']['schema']['event_meta']['data_relation']['embeddable'] = True
+#SETTINGS['DOMAIN']['comment']['schema']['tag']['schema']['data_relation']['embeddable'] = True
+
+
+
+print(SETTINGS['DOMAIN'])
 

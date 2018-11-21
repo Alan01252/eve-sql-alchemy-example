@@ -15,12 +15,14 @@ class BaseModel(Base):
 class Event(BaseModel):
     __tablename__ = 'event'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    event_meta_key = Column(Integer)
+    event_meta_id = Column(Integer, ForeignKey('event_meta.id'))
+    event_meta = relationship("EventMeta", back_populates="event")
     mo_contact_key = Column(String(200))
 
 class EventMeta(BaseModel):
     __tablename__ = 'event_meta'
     id = Column(Integer, primary_key=True, autoincrement=True)
+    event = relationship("Event", back_populates="event_meta", uselist=False)
     url = Column(String(200))
 
     table_type = 'current'
@@ -41,7 +43,7 @@ class Contact(BaseModel):
     name = Column(String)
     numbers = relationship(
         'Number',
-        secondary='contact_number_bridge'
+        secondary='contact_number_bridge',
     )
     team_id = Column(Integer, ForeignKey('contact_team.id'))
 
@@ -75,6 +77,7 @@ class ContactNumberBridge(BaseModel):
 class Comment(BaseModel):
     __tablename__ = 'comment'
     id = Column(Integer, primary_key=True, autoincrement=True)
+    # TODO IMPLEMENT RELATIONS
     event_meta_key = Column(Integer)
     text = Column(String(200))
     tags = relationship(
