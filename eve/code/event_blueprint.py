@@ -16,9 +16,8 @@ sql = (
  )
 
 from flask import request
-@event_blueprint.route('/events/tags', methods=['GET'])
+@event_blueprint.route('/events?{embedded=tags}', methods=['GET'])
 def get_tags():
-    getattr(app, "on_pre_GET")()
     db =  app.data.driver
     result = db.session.execute(sql)
     app.logger.info(result)

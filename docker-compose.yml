@@ -1,4 +1,4 @@
-version: '2'
+version: '3.3'
 services:
     eve:
         build: ./eve
@@ -13,3 +13,9 @@ services:
             - python
             - -u
             - run.py
+        secrets:
+            - totp_master
+
+secrets:
+    totp_master:
+        file: ./eve/secrets/TOTP_MASTER

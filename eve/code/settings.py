@@ -1,6 +1,7 @@
 from models import (
     Event, EventMeta, Contact, ContactTeam,
     Number, ContactNumberBridge,
+    Totp,
     Comment,Tag,CommentTagBridge,OpLog
 )
 from eve_sqlalchemy.config import DomainConfig, ResourceConfig
@@ -25,7 +26,8 @@ SETTINGS = {
         'comment': ResourceConfig(Comment),
         'tag': ResourceConfig(Tag),
         'comment_tag_bridge': ResourceConfig(CommentTagBridge),
-        'oplog': ResourceConfig(OpLog)
+        'oplog': ResourceConfig(OpLog),
+        'totp': ResourceConfig(Totp)
     }).render()
 }
 

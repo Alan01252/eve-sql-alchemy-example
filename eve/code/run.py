@@ -11,6 +11,7 @@ from event_blueprint import event_blueprint
 from eve.auth import TokenAuth
 
 import json
+import pyotp
 
 from eve.methods.common import (
     oplog_push
@@ -28,7 +29,7 @@ class TokenAuth(TokenAuth):
         print("return true")
         return True
 
-app = Eve(auth=TokenAuth, settings=SETTINGS, validator=ValidatorSQL, data=SQL)
+app = Eve(auth=None, settings=SETTINGS, validator=ValidatorSQL, data=SQL)
 app.register_blueprint(event_blueprint)
 
 # Eve hardcodes the oplog schema, overwriting the settings needed for sqlalchemy
@@ -71,10 +72,6 @@ if not db.session.query(Event).count():
 
      db.session.commit()
 
-
-
-
-
 # HOOKS
 def pre_get_callback(resource, request, lookup):
      app.logger.info("pre get fired")
@@ -103,12 +100,29 @@ def pre_oplog(resource, entries):
         if 'c' in entry:
             entry['c'] = json.dumps(entry['c'])
 
+def on_insert_totp_callback(entries):
+    for entry in entries:
+        entry['token'] = pyotp.random_base32()
+
+def on_post_POST_totp(request, payload):
+    data = payload.get_data()
+    json_data = json.loads(data)
+    json_data["test"] = "test"
+    payload.set_data(json.dumps(json_data))
+
+def add_totp_token(response):
+    print("here")
+    print(response)
+
+app.on_fetched_item_totp += add_totp_token
 app.on_pre_GET += pre_get_callback
 app.on_pre_GET += pre_get_callback
 app.on_post_GET += post_get_callback
 app.on_pre_POST += pre_post_callback
 app.on_pre_PUT += pre_put_callback
 app.on_oplog_push += pre_oplog
+app.on_insert_totp += on_insert_totp_callback
+app.on_post_POST_totp += on_post_POST_totp
 
 app.run(host='0.0.0.0', use_reloader=True)
 

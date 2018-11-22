@@ -106,6 +106,13 @@ class CommentTagBridge(BaseModel):
     comment = relationship(Comment, backref=backref("comment_assoc"))
     tag = relationship(Tag, backref=backref("tag_assoc"))
 
+class Totp(BaseModel):
+    __tablename__ = 'totp_token'
+    id = Column(Integer, primary_key=True)
+    token = Column(String(256))
+    portal_uuid = Column(Integer)
+    valid_until = Column(DateTime)
+
 class OpLog(BaseModel):
     __tablename__ = 'oplog'
     id = Column(Integer, primary_key=True, autoincrement=True)
