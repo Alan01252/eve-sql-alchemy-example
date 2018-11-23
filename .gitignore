@@ -1,3 +1,4 @@
 eve/code/__pycache__/
 eve/code/test.db
 eve/secrets/*
+__pycache__
